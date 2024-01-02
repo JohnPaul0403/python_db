@@ -39,7 +39,7 @@ def read_assistants(cursor, user_id: str) -> any:
     try:
         cursor.execute("""SELECT * FROM assistants WHERE user_id = ?""", (user_id,))
         result = cursor.fetchall()
-        assistants = list(map(lambda x : {"id": x[0], "name": x[1], "assistant_id": x[3], "gpt-model": x[4], "files": []}, result))
+        assistants = list(map(lambda x : {"id": x[0], "name": x[1], "assistant_id": x[3], "gpt_model": x[4], "files": []}, result))
         return assistants
     except Exception as e:
         print(e)
@@ -56,7 +56,8 @@ def read_assistant_by_id(cursor, assistant_id: str) -> any:
     """
     try:
         cursor.execute("""SELECT * FROM assistants WHERE assistant_id = ?""", (assistant_id,))
-        return cursor.fetchone()
+        x = cursor.fetchone()
+        return {"id": x[0], "name": x[1], "assistant_id": x[3], "gpt_model": x[4], "files": []}
     except Exception as e:
         print(e)
         return False

@@ -375,6 +375,36 @@ def new_assistant():
         return redirect("/login")
     return render_template("create_new_assistant.html")
 
+@main.route("/assistants/new/auth")
+@login_is_required
+def new_assistant_auth():
+    """
+    Renders the new assistant page for the authenticated user.
+    This function is decorated with `@app.route("/assistants/new/auth")` to specify the URL route for accessing the new assistant page.
+    The `@login_is_required` decorator ensures that only authenticated users can access this page.
+    Returns:
+        A rendered HTML template of the new assistant page.
+        If the user is not logged in, they will be redirected to the login page.
+    """
+    if "user" not in session:
+        return redirect("/login")
+    return render_template("create_new_assistant_auth.html")
+
+@main.route("/assistants/new/create")
+@login_is_required
+def new_assistant_create():
+    """
+    Renders the new assistant page for the authenticated user.
+    This function is decorated with `@app.route("/assistants/new/create")` to specify the URL route for accessing the new assistant page.
+    The `@login_is_required` decorator ensures that only authenticated users can access this page.
+    Returns:
+        A rendered HTML template of the new assistant page.
+        If the user is not logged in, they will be redirected to the login page.
+    """
+    if "user" not in session:
+        return redirect("/login")
+    return render_template("create_new_assistant_create.html")
+
 #Chat with the assistant 
 @main.route("/assistants/chat/<assistant_id>")
 def chat(assistant_id):
@@ -388,5 +418,4 @@ def chat(assistant_id):
     """
     if "user" not in session:
         return redirect("/login")
-    get = assistant_id
     return render_template("assistantchat.html", assistant_id = assistant_id)

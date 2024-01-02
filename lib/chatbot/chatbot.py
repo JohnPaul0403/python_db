@@ -1,7 +1,7 @@
 import openai
 from lib.environments import environments as env
 
-openai.api_key = env.api_key
+env.get_keys()
 
 def get_client():
     """
@@ -111,7 +111,7 @@ def get_message(client, thread, assistant_id: str) -> list:
             messages = client.beta.threads.messages.list(thread_id=thread.id)
             break
 
-    return messages[:-1]
+    return messages
 
 def filter_messages(messages: list) -> list:
     """
@@ -123,5 +123,5 @@ def filter_messages(messages: list) -> list:
     Returns:
         list: The filtered message values.
     """
-    f_messages: list = [message.value for message in messages.data[1].content]
+    f_messages: list = [message.text.value for message in messages.data[0].content]
     return f_messages

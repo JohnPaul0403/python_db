@@ -7,5 +7,16 @@
 </head>
 <body>
     <h1>New Assistant</h1>
+    <form action="{{url_for('main.new_assistant_create')}}" method="post">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+        <label for="gpt-model">gpt-model</label>
+        <input type="text" id="gpt-model" name="gpt-model" required>
+        <label for="instructions">Model Instructions</label>
+        <textarea id="instructions" name="instructions" required></textarea>
+        <label for="file">Upload File</label>
+        <input type="file" id="file" name="file">
+        <button type="submit">Create</button>
+    </form>
 </body>
 </html>

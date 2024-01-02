@@ -131,6 +131,7 @@ class Assistant(object):
 
     def to_json(self) -> dict:
         return {
+            'id': self.id,
             'name': self.name,
             'assistant_id': self.assistant_id,
             'gpt_model': self.gpt_model,
@@ -142,7 +143,7 @@ def from_json(data: dict) -> Assistant:
     assistant.id = data['id']
     assistant.name = data['name']
     assistant.assistant_id = data['assistant_id']
-    assistant.gpt_model = data['gpt-model']
+    assistant.gpt_model = data['gpt_model']
     assistant.files = list(map(lambda x : from_json_files(x), data['files']))
     return assistant
 

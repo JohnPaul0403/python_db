@@ -8,7 +8,15 @@
 </head>
 <body>
     <h1>Lets Chat</h1>
-    <h3>{{assistant_id}}</h3>
+    <h3 id="assistant_id">{{assistant_id}}</h3>
+    <div id="messages"></div>
+    <form id="form" class="p-3 border rounded">
+        <div class="form-group">
+            <label for="text" class="sr-only">Input:</label>
+            <input type="text" id="text" class="form-control" autofocus placeholder="Enter text...">
+        </div>
+    </form>
+    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="{{ url_for('static', filename = 'socket.js') }}"></script>
 </body>
 </html>
