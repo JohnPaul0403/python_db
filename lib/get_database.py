@@ -3,6 +3,7 @@ import sqlite3
 # Connect to the database
 connection = sqlite3.connect('../database/users.db')
 connection_as =  sqlite3.connect('../database/assitants.db')
+connection_pay = sqlite3.connect('../database/payments.db')
 
 # Create a cursor
 cursor = connection.cursor()

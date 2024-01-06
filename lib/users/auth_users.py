@@ -93,12 +93,32 @@ def verify_password(data: dict):
     for key, item in data.items():
         if not item:
             return False
+        if key == "user_id":
+            print(key, item)
+            continue
         if any(char == "{" or char == "}" for char in item):
             return False
         if key == "pass" and not re.match(r"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$", item):
             return False
     return True
 
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
+def verify_str(data: dict) -> bool:
+    """
+    Verify the string data.
+    Args:
+        data (dict): The string data to be verified.
+    Returns:
+        bool: True if the string data is valid, False otherwise.
+    """
+    for key, item in data.items():
+        if not item:
+            return False
+        if any(char == "{" or char == "}" for char in item):
+            return False
+        if key =="file" and not verify_file(item):
+            return False
+    return True
+
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'pptx'}
 def verify_file(file_name):
     return '.' in file_name and file_name.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
