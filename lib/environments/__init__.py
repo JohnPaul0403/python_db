@@ -1,5 +1,6 @@
 #imports
 import json
+import os
 
 #Getting data from json
 def get_secret_key():
@@ -15,11 +16,16 @@ def get_json():
 
 #json path
 path = "lib/environments/secret_key.json"
+UPLOAD_FOLDER = "temp"
 
 #Access keys
 client_id = get_client_id()
 secret_key = get_secret_key()
-api_key = "sk-mykey"
+
+def get_keys():
+    os.environ['OPENAI_API_KEY'] = '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'
+    os.environ['chat_gpt_model'] = "gpt-3.5-turbo"
+    os.environ["square_token"] = "sq0atp-6Vb1xVlW5S3rQ8JQxg6f2pYnQ"
 
 scopes = ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "openid"]
 

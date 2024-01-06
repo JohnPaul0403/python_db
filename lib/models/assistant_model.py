@@ -1,5 +1,5 @@
 from lib.users import assistants_crud
-from lib.chatbot import chatbot
+from lib import chatbot
 
 class Assistant(object):
     def __init__(self):
@@ -71,14 +71,32 @@ class Assistant(object):
         cursor = conn.cursor()
         resp = assistants_crud.create_assistant(cursor, data)
         if resp:
-            self.name = data["name"]
-            self.assistant_id = data["assistant_id"]
-            self.gpt_model = data["gpt_model"]
+            self.__name = data["name"]
+            self.__assistant_id = data["assistant_id"]
+            self.__gpt_model = data["gpt-model"]
+            self.__files = [File(file, self.__assistant_id) for file in data["files"]]
+            for file in self.__files:
+                file.create_file(cursor)
 
         conn.commit()
         conn.close()
 
         return resp
+    
+    def read_assistant_by_id(self, id: str) -> dict:
+        """
+        Reads an assistant from the database by ID.
+        Parameters:
+            id (int): The ID of the assistant to read.
+        Returns:
+            dict: A dictionary containing the assistant data.
+        """
+        conn = assistants_crud.connect_to_database()
+        cursor = conn.cursor()
+        assistant = assistants_crud.read_assistant_by_id(cursor, id)
+        conn.close()
+
+        return assistant
     
     def update_assistant(self, data: dict) -> bool:
         """
@@ -110,9 +128,16 @@ class Assistant(object):
         Returns:
             bool: True if the assistant was deleted successfully, False otherwise.
         """
+        #Delete openai assistant
+        client = chatbot.get_client()
+        chatbot.delete_assistant(client, self.__assistant_id)
+        # Connect to the database
+        # Delete the assistant from the database
         conn = assistants_crud.connect_to_database()
         cursor = conn.cursor()
-        resp = assistants_crud.delete_assistant(cursor, self.assistant_id)
+        for file in self.__files:
+            file.delete_file(client, cursor)
+        resp = assistants_crud.delete_assistant(cursor, self.__assistant_id)
         conn.commit()
         conn.close()
         return resp
@@ -148,58 +173,51 @@ def from_json(data: dict) -> Assistant:
     return assistant
 
 class File:
-    def __init__(self, file_id: str, file_name: str):
+    def __init__(self, file_id: str, assistant_id: str):
+        self.__id = None
         self.__file_id = file_id
-        self.__file_name = file_name
-        self.__purpose = None
+        self.__assistant_id = assistant_id
+
+    #Properties and setters
+    @property
+    def id(self):
+        return self.__id
+
+    @id.setter
+    def id(self, id):
+        self.__id = id
 
     @property
-    def file_id(self) -> str:
+    def file_id(self):
         return self.__file_id
-    
-    @file_id.setter
-    def file_id(self, file_id: str) -> None:
-        self.__file_id = file_id
-    
-    @property
-    def file_name(self) -> str:
-        return self.__file_name
-    
-    @file_name.setter
-    def file_name(self, file_name: str) -> None:
-        self.__file_name = file_name
-    
-    @property
-    def purpose(self) -> str:
-        return self.__purpose
-    
-    @purpose.setter
-    def purpose(self, purpose: str) -> None:
-        self.__purpose = purpose
-    
-    def __str__(self):
-        return f"File(file_id={self.file_id}, file_name={self.file_name}, purpose={self.purpose})"
-    
-    def __repr__(self):
-        return self.__str__()
-    
-    def save_file(self) -> bool:
-        """
-        Saves the file to the database.
-        Returns:
-            bool: True if the file was saved successfully, False otherwise.
-        """
-        conn = assistants_crud.connect_to_database()
-        cursor = conn.cursor()
-        resp = assistants_crud.create_file(cursor, self.to_json())
-        return resp
 
+    @file_id.setter
+    def file_id(self, file_id):
+        self.__file_id = file_id
+
+    @property
+    def assistant_id(self):
+        return self.__assistant_id
+
+    @assistant_id.setter
+    def assistant_id(self, assistant_id):
+        self.__assistant_id = assistant_id
+
+    #Methods
+    def create_file(self, cursor):
+        assistants_crud.create_file(cursor, self.to_json())
+
+    def delete_file(self, client, cursor):
+        chatbot.delete_file(client, self.__file_id)
+        assistants_crud.delete_file(cursor, self.__file_id)
+
+    #Methods
     def to_json(self) -> dict:
         return {
+            'id': self.id,
             'file_id': self.file_id,
-            'file_name': self.file_name,
-            'purpose': self.purpose
+            'assistant_id': self.assistant_id
         }
     
 def from_json_files(data: dict) -> File:
-    return File(**data)
+    return File(data["file_id"], data["assistant_id"])

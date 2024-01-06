@@ -128,6 +128,12 @@ class User:
     def assistants(self, assistants: list[assistant_model.Assistant]):
         self.__assistants = assistants
 
+    def change_pro_plan(self):
+        """
+        Changes the pro plan of the user.
+        """
+        self.pro_plan = not self.pro_plan
+
     def to_json(self) -> dict:
         """
         Converts the object to a JSON representation.

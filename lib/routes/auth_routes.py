@@ -1,13 +1,8 @@
-import requests
 from functools import wraps
-from flask import Blueprint, redirect, render_template, session, abort, request, url_for, flash
-from .extensions import GOOGLE_CLIENT_ID, flow, app_id_token, app_cachecontrol, my_requests
-from .users import auth_users
-from .models import user_model
+from . import main, redirect, request, url_for, flash, abort, session, requests,\
+    user_model, assistant_model, auth_users, os,\
+        GOOGLE_CLIENT_ID, flow, app_id_token, app_cachecontrol, my_requests, secure_filename, UPLOAD_FOLDER
 
-main = Blueprint('main', __name__)
-
-#Login required decorator
 def login_is_required(function):
     @wraps(function)
     def wrapper(*args, **kwargs):
@@ -18,21 +13,6 @@ def login_is_required(function):
         return abort(401)  # Authorization required
 
     return wrapper
-
-#________________________ Index page  ________________________#
-@main.route("/")
-def index():
-    return render_template("index.html")
-
-#________________________ Login page  ________________________#
-@main.route("/login")
-def login():
-    return render_template("login.html")
-
-#________________________ Signup page  ________________________#
-@main.route("/signup")
-def signup():
-    return render_template("signup.html")
 
 #________________________ Login Methods-________________________#
 @main.route("/login/user", methods = ["POST"])
@@ -52,7 +32,7 @@ def get_user():
     user_auth: list = [request.form["username"], request.form["password"]]
     if not auth_users.verify_login({"name": user_auth[0], "pass" : user_auth[1]}):
         flash("Invalid username or password. Please try again!")
-        return redirect(url_for("login"))
+        return redirect(url_for("main.login"))
     return redirect(url_for("main.auth_login", user = user_auth[0], password = user_auth[1]))
     
 @main.route("/login/user/auth_login")
@@ -204,60 +184,7 @@ def auth_signup():
     flash("Invalid username. Please try again!")
     return redirect(url_for("main.signup"))
 
-#________________________  User's Dashboard  ________________________#
-@main.route("/dashboard")
-@login_is_required
-def dashboard():
-    """
-    Renders the dashboard page for the authenticated user.
-    Parameters:
-        None
-    Returns:
-        The rendered dashboard.html template with the user's name and email.
-    Raises:
-        Redirect: If the user is not logged in, redirects to the login page.
-    """
-    if "user" not in session:
-        return redirect("/login")
-    user = user_model.from_json(session["user"])
-    return render_template("dashboard.html", name = user.name, email = user.email)
-
-@main.route("/dashboard/chat/")
-@login_is_required
-def chat_assistant():
-    """
-    Route decorator for the "/dashboard/chat/" endpoint.
-    Requires the user to be logged in.
-    
-    Parameters:
-        None
-        
-    Returns:
-        Flask redirect object or Flask render_template object
-            - If the user is not in the session, redirects to "/login"
-            - Otherwise, renders the "assistantchat.html" template
-    """
-    if "user" not in session:
-        return redirect("/login")
-    return render_template("assistantchat.html")
-
 #________________________ User's Profile Page ________________________#
-# User's Profile Page
-@main.route("/profile")
-@login_is_required
-def profile():
-    """
-    Renders the profile page for the authenticated user.
-    This function is decorated with `@app.route("/profile")` to specify the URL route for accessing the profile page.
-    The `@login_is_required` decorator ensures that only authenticated users can access this page.
-    Returns:
-        A rendered HTML template of the profile page with the user's session information.
-        If the user is not logged in, they will be redirected to the login page.
-    """
-    if "user" not in session:
-        return redirect("/login")
-    return render_template("profile.html", user=session["user"])
-
 #Change user data
 @main.route("/profile/change_data", methods=["POST"])
 @login_is_required
@@ -340,82 +267,77 @@ def change_password():
     return redirect(url_for("main.profile"))
 
 #__________________________ Assistants Page __________________________#
-#Assistant page
-@main.route("/assistants")
-@login_is_required
-def assistants():
-    """
-    Renders the assistants page for the authenticated user.
-    This function is decorated with `@app.route("/assistants")` to specify the URL route for accessing the assistants page.
-    The `@login_is_required` decorator ensures that only authenticated users can access this page.
-    Returns:
-        A rendered HTML template of the assistants page.
-        If the user is not logged in, they will be redirected to the login page.
-    """
-    if "user" not in session:
-        return redirect("/login")
-    print(session["user"])
-    user = user_model.from_json(session["user"])
-    session["user"] = user.to_json()
-    return render_template("assistants.html", user = session["user"])
-
-#Create new assistant
-@main.route("/assistants/new")
-@login_is_required
-def new_assistant():
-    """
-    Renders the new assistant page for the authenticated user.
-    This function is decorated with `@app.route("/assistants/new")` to specify the URL route for accessing the new assistant page.
-    The `@login_is_required` decorator ensures that only authenticated users can access this page.
-    Returns:
-        A rendered HTML template of the new assistant page.
-        If the user is not logged in, they will be redirected to the login page.
-    """
-    if "user" not in session:
-        return redirect("/login")
-    return render_template("create_new_assistant.html")
-
-@main.route("/assistants/new/auth")
+@main.route("/assistants/new/auth", methods = ["POST"])
 @login_is_required
 def new_assistant_auth():
     """
-    Renders the new assistant page for the authenticated user.
-    This function is decorated with `@app.route("/assistants/new/auth")` to specify the URL route for accessing the new assistant page.
-    The `@login_is_required` decorator ensures that only authenticated users can access this page.
+    Authenticates a new assistant.
     Returns:
-        A rendered HTML template of the new assistant page.
-        If the user is not logged in, they will be redirected to the login page.
+        The URL to redirect to if the authentication is successful.
     """
+    files: list
     if "user" not in session:
         return redirect("/login")
-    return render_template("create_new_assistant_auth.html")
+    user = user_model.from_json(session["user"])
+    if request.method != "POST":
+        flash("Internal problem. Please try again!")
+        return redirect(url_for("main.new_assistant"))
+    if 'file' not in request.files:
+        flash('No file part')
+        return redirect(request.url)
+
+    file = request.files['file']
+    if file.filename == '':
+        flash('No selected file')
+        return redirect(request.url)
+    print(file)
+    if file and auth_users.verify_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(UPLOAD_FOLDER, filename))
+        files = [filename]
+    data = {
+        "user_id" : str(user.id),
+        "name" : request.form["name"],
+        "gpt-model" : request.form["gpt-model"],
+        "instructions" : request.form["instructions"],
+        "files" : files
+    }
+
+    if not auth_users.verify_str(data):
+        flash("Invalid data. Please try again!")
+        return redirect(url_for("main.new_assistant"))
+
+    return redirect(url_for("main.new_assistant_create", data = data))
 
 @main.route("/assistants/new/create")
 @login_is_required
 def new_assistant_create():
     """
-    Renders the new assistant page for the authenticated user.
-    This function is decorated with `@app.route("/assistants/new/create")` to specify the URL route for accessing the new assistant page.
-    The `@login_is_required` decorator ensures that only authenticated users can access this page.
+    Creates a new assistant.
     Returns:
-        A rendered HTML template of the new assistant page.
-        If the user is not logged in, they will be redirected to the login page.
+        The URL to redirect to if the creation is successful.
     """
     if "user" not in session:
         return redirect("/login")
-    return render_template("create_new_assistant_create.html")
+    data = eval(request.args.get("data"))
+    assistant = assistant_model.Assistant()
+    assistant.create_assistant(data)
+    return redirect(f"/assistants/chat/{data['assistant_id']}")
 
-#Chat with the assistant 
-@main.route("/assistants/chat/<assistant_id>")
-def chat(assistant_id):
+@main.route("/assistants/delete")
+@login_is_required
+def delete_assistant():
     """
-    Route decorator for the chat endpoint.
-    Parameters:
-        assistant_id (str): The ID of the assistant.
+    Deletes an assistant.
     Returns:
-        redirect: Redirects to the login page if the user is not in session.
-        render_template: Renders the assistant chat template with the assistant ID.
+        The URL to redirect to if the deletion is successful.
     """
     if "user" not in session:
         return redirect("/login")
-    return render_template("assistantchat.html", assistant_id = assistant_id)
+    user = user_model.from_json(session["user"])
+    assistant_id = request.args.get("assistant_id")
+    for assistant in user.assistants:
+        if assistant.assistant_id == assistant_id:
+            assistant.delete_assistant()
+            break
+    return redirect("/assistants")

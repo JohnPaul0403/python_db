@@ -1,11 +1,95 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Homepage</title>
+    <!-- CSS only -->
+    <link rel="stylesheet" href="{{ url_for('static', filename = 'styles/reset.css') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.2/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
 </head>
 <body>
-    Hello World <a href='{{ url_for("main.login")}}'><button>Login</button></a>
+    <header>
+        <div class="container-fluid mt-12 text-center">
+            <br>
+            <h3>Assistant Creator</h3>
+            <p>A sticky navigation bar stays fixed at the top of the page when you scroll past it.</p>
+            <p>Scroll this page to see the effect. <strong>Note:</strong> sticky-top does not work in IE11 and earlier.</p>
+          </div>
+    </header>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-secondary sticky-top">
+        <a class="navbar-brand" href="{{url_for('main.index')}}">Best Team Maker</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href='{{ url_for("main.index")}}'>Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href='{{ url_for("main.pricing")}}'>Pricing</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href='{{ url_for("main.about")}}'>About Us</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href='{{ url_for("main.blogs")}}'>Blogs</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href='{{ url_for("main.login")}}'>Login</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="content mt-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-12 text-center">
+                    <h2>Welcome to the new era!</h2>
+                    <p>
+                        Lorem ipsum dolor sit amet consectetur adipisicing elit. 
+                        Laboriosam aliquid eveniet dolore at repudiandae corrupti maxime voluptatem. 
+                        Eveniet minima facilis vitae libero, atque dicta aperiam soluta, illo, nobis ipsum nostrum!
+                        Lorem ipsum dolor sit amet consectetur, adipisicing elit. Ratione quas excepturi maxime placeat delectus, accusamus quia sunt reiciendis vero eaque adipisci dolorem. Sapiente vel numquam sequi ipsum quibusdam molestiae eaque?
+                    </p>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-4">
+                    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Omnis enim molestiae nostrum voluptates quae ipsum porro tenetur aliquid, nisi aperiam, ab id libero voluptatem. Sed ipsa quia quidem veniam minima!</p>
+                </div>
+                <div class="col-md-4">
+                    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Omnis enim molestiae nostrum voluptates quae ipsum porro tenetur aliquid, nisi aperiam, ab id libero voluptatem. Sed ipsa quia quidem veniam minima!</p>
+                </div>
+                <div class="col-md-4">
+                    <p>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Omnis enim molestiae nostrum voluptates quae ipsum porro tenetur aliquid, nisi aperiam, ab id libero voluptatem. Sed ipsa quia quidem veniam minima!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Footer with Sections -->
+    <footer class="custom-footer" style="background-color: rgb(22, 22, 22); color: aliceblue; padding: 20px 0; margin-top: 70px;">
+        <div class="container mt-4" style="text-align: center;">
+            <div class="row">
+                <div class="col-md-4 footer-section">
+                    <h4>About Team Maker</h4>
+                    <p>Team Maker is a transformative project committed to revolutionizing the way teams are formed in educational settings. Our mission is to simplify the team formation process for educators, providing an intuitive dashboard and innovative features that enhance collaboration and enrich the learning experience.</p>
+                </div>
+                <div class="col-md-4 footer-section">
+                    <h4>Contact Team Maker</h4>
+                    <p>Email: contact@teammaker.com</p>
+                    <p>Phone: +123-456-7890</p>
+                </div>
+                <div class="col-md-4 footer-section">
+                    <h4>Visit Us</h4>
+                    <p>Team Maker HQ</p>
+                    <p>123 Innovation Avenue</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
 </body>
 </html>

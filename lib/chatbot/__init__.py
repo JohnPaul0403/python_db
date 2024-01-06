@@ -1,7 +1,8 @@
 import openai
-from lib.environments import environments as env
+from lib.extensions import os
+from lib.environments import get_keys, UPLOAD_FOLDER
 
-env.get_keys()
+get_keys()
 
 def get_client():
     """
@@ -11,7 +12,7 @@ def get_client():
     """
     return openai.OpenAI()
 
-def get_thread(client):
+def get_thread(client): 
     """
     Get the thread using the provided client.
     Args:
@@ -29,15 +30,53 @@ def create_assistant(client, data: dict) -> any:
     Returns:
         bool: True if the assistant is successfully created, False otherwise.
     """
+    print(data)
+    files = [upload_files_to_openai(client, f"{UPLOAD_FOLDER}/{file}").id for file in data["files"]]
     assistant = client.beta.assistants.create(
-        name = data["model_name"],
+        name = data["name"],
         instructions = data["instructions"],
-        model = data["gpt_model"],
+        model = data["gpt-model"],
         tools = [{"type": "retrieval"}],
-        file_ids=data["files"]#Here should be listed all your files
+        file_ids = files
     )
 
+    data["files"] = files
+    print(data)
+
     return assistant
+
+def get_assistant(client, assistant_id: str):
+    """
+    Get the assistant using the provided client and assistant_id.
+    Args:
+        client (Client): The client object used to connect to the API.
+        assistant_id (str): The ID of the assistant to retrieve.
+    Returns:
+        Assistant: The retrieved assistant object.
+    """
+    return client.beta.assistants.get(assistant_id)
+
+def list_assistants(client, user_id: str):
+    """
+    Get the list of assistants using the provided client and user_id.
+    Args:
+        client (Client): The client object used to connect to the API.
+        user_id (str): The ID of the user to retrieve assistants for.
+    Returns:
+        list: A list of assistant objects.
+    """
+    return client.beta.assistants.list_by_user(user_id)
+
+def delete_assistant(client, assistant_id: str):
+    """
+    Delete the assistant using the provided client and assistant_id.
+    Args:
+        client (Client): The client object used to connect to the API.
+        assistant_id (str): The ID of the assistant to delete.
+    Returns:
+        bool: True if the assistant is successfully deleted, False otherwise.
+    """
+    return client.beta.assistants.delete(assistant_id)
 
 def upload_files_to_openai(client, path):
     """
@@ -52,6 +91,7 @@ def upload_files_to_openai(client, path):
     with open(path, 'rb') as file:
         uploaded_file = client.files.create(file=file, purpose='assistants')
 
+    os.remove(path)
     return uploaded_file
 
 def upload_new_files(client, data):
@@ -71,8 +111,49 @@ def upload_new_files(client, data):
 
     print(f"File '{data['file_path']}' uploaded and added to the assistant with ID: {data['assistant_id']}")
 
-def delete_file(client, file_id):
+def delete_file(client, file_id: str):
+    """
+    Deletes a file using the provided client and file ID.
+    Parameters:
+        client (Client): The client object used to interact with the file system.
+        file_id (str): The ID of the file to be deleted.
+    Returns:
+        None
+    """
     client.files.delete(file_id)
+
+def list_files(client, assistant_id: str):
+    """
+    Lists files in the OpenAI API.
+    Args:
+        client (Client): The OpenAI client used to interact with the API.
+        assistant_id (str): The ID of the assistant to list files for.
+    Returns:
+        list: A list of file objects.
+    """
+    return client.beta.assistants.files.list(assistant_id)
+
+def get_file(client, file_id: str):
+    """
+    Retrieves a file from the OpenAI API.
+    Args:
+        client (Client): The OpenAI client used to interact with the API.
+        file_id (str): The ID of the file to be retrieved.
+    Returns:
+        File: The retrieved file object.
+    """
+    return client.files.retrieve(file_id)
+
+def delete_file_by_assistant(client, assistant_id: str, file_id: str) -> None:
+    """
+    Deletes a file from the OpenAI API.
+    Args:
+        client (Client): The OpenAI client used to interact with the API.
+        file_id (str): The ID of the file to be deleted.
+    Returns:
+        None
+    """
+    client.beta.assistants.files.delete(assistant_id, file_id)
 
 def send_message(client, thread, m_content) -> None:
     """

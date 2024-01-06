@@ -7,7 +7,16 @@
 </head>
 <body>
     <h1>New Assistant</h1>
-    <form action="{{url_for('main.new_assistant_create')}}" method="post">
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div>
+                {% for message in messages %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+    <form action="{{url_for('main.new_assistant_auth')}}" method="post" enctype="multipart/form-data">
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" required>
         <label for="gpt-model">gpt-model</label>

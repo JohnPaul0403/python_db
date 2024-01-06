@@ -20,12 +20,16 @@ def create_assistant(cursor, data: dict) -> bool:
     Returns:
         bool: True if the assistant was successfully inserted, False otherwise.
     """
-    try:
-        cursor.execute("""INSERT INTO assistants (name, assistant_id, gpt_model) VALUES (?, ?, ?)""", (data["name"], data["assistant_id"], data["gpt_model"]))
-        return True
-    except Exception as e:
-        print(e)
-        return False
+
+    for file in data["files"]:
+        fdata = {
+            "file" : file,
+            "assistant_id" : data["assistant_id"]
+        }
+        create_file(cursor, fdata)
+    cursor.execute("""INSERT INTO assistants (name, assistant_id, gpt_model, user_id) VALUES (?, ?, ?, ?)""", (data["name"], data["assistant_id"], data["gpt-model"], data["user_id"]))
+    return True
+   
 
 def read_assistants(cursor, user_id: str) -> any:
     """
@@ -39,7 +43,7 @@ def read_assistants(cursor, user_id: str) -> any:
     try:
         cursor.execute("""SELECT * FROM assistants WHERE user_id = ?""", (user_id,))
         result = cursor.fetchall()
-        assistants = list(map(lambda x : {"id": x[0], "name": x[1], "assistant_id": x[3], "gpt_model": x[4], "files": []}, result))
+        assistants = list(map(lambda x : {"id": x[0], "name": x[1], "assistant_id": x[3], "gpt_model": x[4], "files": [{"id": file[0], "file_id" : file[1], "assistant_id" : file[2]} for file in read_files(cursor, x[3])]}, result))
         return assistants
     except Exception as e:
         print(e)
@@ -55,9 +59,12 @@ def read_assistant_by_id(cursor, assistant_id: str) -> any:
     :rtype: bool or tuple
     """
     try:
+        cursor.execute("""SELECT * FROM files WHERE assistant_id = ?""", (assistant_id,))
+        files = list(map(lambda x : {"id": x[0], "file": x[1], "assistant_id": x[2]}, cursor.fetchall()))
         cursor.execute("""SELECT * FROM assistants WHERE assistant_id = ?""", (assistant_id,))
+
         x = cursor.fetchone()
-        return {"id": x[0], "name": x[1], "assistant_id": x[3], "gpt_model": x[4], "files": []}
+        return {"id": x[0], "name": x[1], "assistant_id": x[3], "gpt_model": x[4], "files": files}
     except Exception as e:
         print(e)
         return False
@@ -131,7 +138,7 @@ def create_file(cursor, data: dict) -> bool:
     except:
         return False
 
-def read_files(cursor, data: dict) -> any:
+def read_files(cursor, assistant_id: str) -> any:
     """
     Read files from the database based on the provided cursor and data.
     Args:
@@ -144,7 +151,7 @@ def read_files(cursor, data: dict) -> any:
         returned.
     """
     try:
-        cursor.execute("""SELECT * FROM files WHERE assistant_id = ?""", (data["assistant_id"],))
+        cursor.execute("""SELECT * FROM files WHERE assistant_id = ?""", (assistant_id,))
         return cursor.fetchall()
     except:
         return False
@@ -194,7 +201,7 @@ def delete_files(cursor, data: dict) -> bool:
     except:
         return False
 
-def delete_file(cursor, data: dict) -> bool:
+def delete_file(cursor, file_id: str) -> bool:
     """
     Deletes a file from the database.
     Parameters:
@@ -205,7 +212,7 @@ def delete_file(cursor, data: dict) -> bool:
         bool: True if the file is successfully deleted, False otherwise.
     """
     try:
-        cursor.execute("""DELETE FROM files WHERE file_id = ?""", (data["file_id"],))
+        cursor.execute("""DELETE FROM files WHERE file_id = ?""", (file_id,))
         return True
     except:
         return False
