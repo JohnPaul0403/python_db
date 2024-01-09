@@ -1,5 +1,5 @@
 from functools import wraps
-from . import main, abort, render_template, session, redirect, user_model, assistant_model
+from . import main, abort, render_template, session, redirect, user_model, assistant_model, payments_models, api_crud
 
 def login_is_required(function):
     @wraps(function)
@@ -58,6 +58,16 @@ def dashboard():
     if "user" not in session:
         return redirect("/login")
     user = user_model.from_json(session["user"])
+    client = api_crud.get_client()
+    resp = api_crud.get_list_clients(client=client)
+    if resp.is_error():
+        print(resp.errors)
+        return redirect("/login")
+    customers = payments_models.customer_model.from_json_list(resp.body)
+    customer = customers.search_customer(user.email)
+    if not customer: 
+        print(customer)
+        return redirect("/login")
     return render_template("dashboard.html", name = user.name, email = user.email)
 
 @main.route("/dashboard/chat/")

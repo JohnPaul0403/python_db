@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from . import payments_crud
 
 @dataclass
 class AmountMoney:
@@ -103,9 +102,6 @@ class Payment:
             'application_details': self.application_details.to_json(),
             'version_token': self.version_token
         }
-    
-    def save_payment(self, cursor, user_id: str) -> None:
-        payments_crud.create_payment(cursor, user_id, self.to_json())
 
 def from_json(data: dict) -> Payment:
     return Payment(**data["payment"])

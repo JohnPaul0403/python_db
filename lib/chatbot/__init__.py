@@ -1,8 +1,6 @@
 import openai
 from lib.extensions import os
-from lib.environments import get_keys, UPLOAD_FOLDER
-
-get_keys()
+from lib.environments import UPLOAD_FOLDER
 
 def get_client():
     """

@@ -23,9 +23,10 @@ client_id = get_client_id()
 secret_key = get_secret_key()
 
 def get_keys():
-    os.environ['OPENAI_API_KEY'] = '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'
+    os.environ['OPENAI_API_KEY'] = 'sk-key'
     os.environ['chat_gpt_model'] = "gpt-3.5-turbo"
-    os.environ["square_token"] = "sq0atp-6Vb1xVlW5S3rQ8JQxg6f2pYnQ"
+    os.environ["square_token"] = "a_key"
+    os.environ["SECRET_KEY"] = secret_key
 
 scopes = ["https://www.googleapis.com/auth/userinfo.profile", "https://www.googleapis.com/auth/userinfo.email", "openid"]
 

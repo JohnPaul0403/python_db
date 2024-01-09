@@ -1,6 +1,6 @@
 from functools import wraps
 from . import main, redirect, request, url_for, flash, abort, session, requests,\
-    user_model, assistant_model, auth_users, os,\
+    user_model, assistant_model, auth_users, os, api_crud,\
         GOOGLE_CLIENT_ID, flow, app_id_token, app_cachecontrol, my_requests, secure_filename, UPLOAD_FOLDER
 
 def login_is_required(function):
@@ -155,11 +155,11 @@ def signup_user():
         flash("Internal problem. Please try again!")
         return redirect(url_for("main.signup"))
     
-    auth_user = {"name": request.form["username"], "email" : request.form["email"], "pass" : request.form["password"]}
+    auth_user = {"pay_name": request.form["name"], "last name": request.form["surname"], "name": request.form["username"], "email" : request.form["email"], "pass" : request.form["password"]}
     if not auth_users.verify_signup(auth_user):
         flash("Invalid username, email or password. Please try again!")
         return redirect(url_for("main.signup"))
-    return redirect(url_for("main.auth_signup", user = request.form["username"], email = request.form["email"], password = request.form["password"], ))
+    return redirect(url_for("main.auth_signup", name = request.form["name"], surname = request.form["surname"], user = request.form["username"], email = request.form["email"], password = request.form["password"], ))
 
 @main.route("/signup/user/auth_signup")
 def auth_signup():
@@ -171,11 +171,18 @@ def auth_signup():
         None
     """
     user_auth = {
+        "pay_name": request.args.get("name"),
+        "last name": request.args.get("surname"),
         "username": request.args.get("user"),
         "email": request.args.get("email"),
         "password": request.args.get("password"),
     }
     user = user_model.User(user_auth["email"])
+    resp = api_crud.create_customer(data=user_auth)
+    if resp.is_error():
+        print(resp.errors)
+        flash("Internal error. Please try again!")
+        return redirect("/login")
     if user.signup(user_auth):
         session.pop('_flashes', None)
         session["user"] = user.to_json()
