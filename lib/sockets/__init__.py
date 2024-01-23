@@ -5,4 +5,4 @@ from lib.models import user_model
 
 socketio = socketio
 
-from . import chat_sockets, payments_sockets
+from . import chat_sockets

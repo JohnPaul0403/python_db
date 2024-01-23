@@ -10,15 +10,9 @@
     <h2>{{user.name}}</h2>
     <h2>{{user.email}}</h2>
     <h2>{{user.pro_plan}}</h2>
-    {% with messages = get_flashed_messages() %}
-        {% if messages %}
-            <div>
-                {% for message in messages %}
-                    <p>{{ message }}</p>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+
+    {% include "partials/flashes.html" %}
+    
     <form action="{{url_for('main.change_data')}}" method="post">
         <label for="name">Name:</label>
         <input type="text" id="name" name="name" value="{{user.name}}">

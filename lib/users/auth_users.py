@@ -112,6 +112,7 @@ def verify_str(data: dict) -> bool:
     """
     for key, item in data.items():
         if not item:
+            print(key, item)
             return False
         if any(char == "{" or char == "}" for char in item):
             return False

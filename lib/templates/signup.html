@@ -13,17 +13,17 @@
             <h1 class="text-center mb-4">Signup</h1>
             <h2 class="text-center mb-4">User Signup</h2>
 
-            {% with messages = get_flashed_messages() %}
-                {% if messages %}
-                    <div class="alert alert-info" role="alert">
-                        {% for message in messages %}
-                            <p>{{ message }}</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            {% endwith %}
+            {% include "partials/flashes.html" %}
 
             <form action="{{ url_for('main.signup_user') }}" method="post" class="p-4 border rounded-3 bg-light">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Your name:</label>
+                    <input type="text" id="name" name="name" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label for="surname" class="form-label">Last name:</label>
+                    <input type="text" id="surname" name="surname" class="form-control" required>
+                </div>
                 <div class="mb-3">
                     <label for="username" class="form-label">Username:</label>
                     <input type="text" id="username" name="username" class="form-control" required>

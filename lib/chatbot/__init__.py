@@ -1,16 +1,25 @@
 import openai
 from lib.extensions import os
-from lib.environments import get_keys, UPLOAD_FOLDER
+from lib.environments import UPLOAD_FOLDER
 
-get_keys()
+def check_openai_api_key(api_key) -> bool:
+    openai.api_key = api_key
+    try:
+        openai.models.list()
 
-def get_client():
+        openai.api_key = None
+        return True
+    except openai.AuthenticationError as e:
+        print(e)
+        return False
+
+def get_client(token:str):
     """
     Initializes and returns an instance of the OpenAI client.
     Returns:
         An instance of the OpenAI client.
     """
-    return openai.OpenAI()
+    return openai.OpenAI(api_key=token)
 
 def get_thread(client): 
     """

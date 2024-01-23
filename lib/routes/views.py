@@ -42,6 +42,15 @@ def login():
 def signup():
     return render_template("signup.html")
 
+#________________________ Set Token page  ________________________#
+@main.route("/signup/set-token")
+@login_is_required 
+def set_token_page():
+    if "user" not in session:
+        return redirect("/login")
+    
+    return render_template("set_token.html")
+
 #________________________  User's Dashboard  ________________________#
 @main.route("/dashboard")
 @login_is_required
@@ -150,20 +159,3 @@ def chat(assistant_id):
     session["assistant"] = {"assistant_id" : assistant_id, "name" : dict_assistant["name"]}
 
     return render_template("assistantchat.html", assistant_id = assistant_id)
-
-#__________________________ Payments Page __________________________#
-#Payments page
-@main.route("/payments")
-@login_is_required
-def payments():
-    """
-    Renders the payments page for the authenticated user.
-    This function is decorated with `@app.route("/payments")` to specify the URL route for accessing the payments page.
-    The `@login_is_required` decorator ensures that only authenticated users can access this page.
-    Returns:
-        A rendered HTML template of the payments page.
-        If the user is not logged in, they will be redirected to the login page.
-    """
-    if "user" not in session:
-        return redirect("/login")
-    return render_template("payments.html")
