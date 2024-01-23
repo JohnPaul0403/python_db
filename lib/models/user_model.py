@@ -1,4 +1,6 @@
+import os
 from . import assistant_model
+from lib import chatbot
 from lib.users import user_crud, assistants_crud
 
 class User:
@@ -7,6 +9,7 @@ class User:
         self.__name = None
         self.__email = email
         self.__password = None
+        self.__token = None
         self.__pro_plan = False
         self.__assistants = None
 
@@ -112,6 +115,15 @@ class User:
         self.__password = password
 
     @property
+    def token(self) -> str:
+        return self.__token
+
+    @token.setter
+    def token(self, token: str):
+        if chatbot.check_openai_api_key(token):
+            self.__token = token
+
+    @property
     def pro_plan(self) -> bool:
         return self.__pro_plan
 
@@ -146,6 +158,7 @@ class User:
             'name': self.name,
             'email': self.email,
             'password': self.password,
+            'token': self.token,
             'pro_plan': self.pro_plan,
             'assistants': list(map(lambda x : x.to_json(), self.assistants)) if self.assistants else []
         }
@@ -185,10 +198,12 @@ class User:
         self.id = user[0]
         self.name = user[1]
         self.email = user[2]
-        
+        self.token = user[4]
+        self.pro_plan = user[5]
+        print(self.token)
         return True
 
-    def login_google(self, user_name) -> bool:
+    def login_google(self, data: dict) -> bool:
         """
         Logs in a user using their Google credentials.
         Args:
@@ -202,12 +217,16 @@ class User:
         if user is None:
             return False
         
-        if user[2] != self.email or user[1] != user_name:
+        if user[2] != self.email or user[1] != data["username"]:
             return False
         
         self.id = user[0]
         self.name = user[1]
         self.email = user[2]
+        self.token = user[4]
+        self.pro_plan = user[5]
+
+        print(self.token)
         
         return True
 
@@ -235,6 +254,24 @@ class User:
         cursor = conn.cursor()
         self.name = data["username"]
         self.password = data["password"]
+        user = user_crud.create_user(cursor, data)
+        conn.commit()
+        conn.close()
+        return user
+    
+    def signup_google(self, data: dict) -> bool:
+        """
+        Creates a new user in the database.
+        Args:
+            data (dict): A dictionary containing user data.
+        Returns:
+            bool: True if the user is successfully created, False otherwise.
+        """
+        conn = user_crud.connect_to_database()
+        cursor = conn.cursor()
+        self.name = data["name"]
+        self.email = data["email"]
+        data["password"] = data["email"]
         user = user_crud.create_user(cursor, data)
         conn.commit()
         conn.close()
@@ -321,5 +358,6 @@ def from_json(data: dict):
     user.name = data["name"]
     user.pro_plan = data["pro_plan"]
     user.id = data["id"]
+    user.token = data["token"]
     user.assistants = list(map(lambda x : assistant_model.from_json(x), data["assistants"]))
     return user

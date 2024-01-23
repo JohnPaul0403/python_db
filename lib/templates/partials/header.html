@@ -1,0 +1,30 @@
+<header>
+    <div class="container-fluid mt-12 text-center">
+        <br>
+        <h3>Assistant Creator</h3>
+        <p>A sticky navigation bar stays fixed at the top of the page when you scroll past it.</p>
+        <p>Scroll this page to see the effect. <strong>Note:</strong> sticky-top does not work in IE11 and earlier.</p>
+      </div>
+</header>
+<nav class="navbar navbar-expand-lg navbar-dark bg-secondary sticky-top">
+    <a class="navbar-brand" href="{{url_for('main.index')}}">Best Team Maker</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item">
+                <a class="nav-link" href='{{ url_for("main.index")}}'>Home</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href='{{ url_for("main.about")}}'>About Us</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href='{{ url_for("main.blogs")}}'>Blogs</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href='{{ url_for("main.login")}}'>Login</a>
+            </li>
+        </ul>
+    </div>
+</nav>

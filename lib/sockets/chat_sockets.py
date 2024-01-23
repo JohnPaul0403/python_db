@@ -10,7 +10,7 @@ def handle_connection():
     Returns:
         None
     """
-    client = chatbot.get_client()
+    client = chatbot.get_client(session["token"])
     session["client_id"] = {
         "openai_client" : client,
         "openai_thread" : chatbot.get_thread(client=client),

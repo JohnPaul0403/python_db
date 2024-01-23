@@ -4,6 +4,7 @@ from lib import chatbot
 class Assistant(object):
     def __init__(self):
         self.__id: int = None
+        self.__token: str = None
         self.__name: str = None
         self.__assistant_id: str = None
         self.__gpt_model: str = None
@@ -17,6 +18,14 @@ class Assistant(object):
     @id.setter
     def id(self, id: int) -> None:
         self.__id = id
+
+    @property
+    def token(self) -> str:
+        return self.__token
+    
+    @token.setter
+    def token(self, token: str) -> None:
+        self.__token = token
 
     @property
     def name(self) -> str:
@@ -62,7 +71,8 @@ class Assistant(object):
             bool: True if the assistant was created successfully, False otherwise.
         """
         #Create openai assistant
-        client = chatbot.get_client()
+        print(data)
+        client = chatbot.get_client(data["token"])
         assistant = chatbot.create_assistant(client, data)
         # Connect to the database
         # Create the assistant in the database
@@ -71,6 +81,7 @@ class Assistant(object):
         cursor = conn.cursor()
         resp = assistants_crud.create_assistant(cursor, data)
         if resp:
+            self.__token = data["token"]
             self.__name = data["name"]
             self.__assistant_id = data["assistant_id"]
             self.__gpt_model = data["gpt-model"]
@@ -129,7 +140,7 @@ class Assistant(object):
             bool: True if the assistant was deleted successfully, False otherwise.
         """
         #Delete openai assistant
-        client = chatbot.get_client()
+        client = chatbot.get_client(self.token)
         chatbot.delete_assistant(client, self.__assistant_id)
         # Connect to the database
         # Delete the assistant from the database

@@ -1,6 +1,6 @@
 from functools import wraps
 from . import main, redirect, request, url_for, flash, abort, session, requests,\
-    user_model, assistant_model, auth_users, os, api_crud,\
+    user_model, assistant_model, auth_users, os,\
         GOOGLE_CLIENT_ID, flow, app_id_token, app_cachecontrol, my_requests, secure_filename, UPLOAD_FOLDER
 
 def login_is_required(function):
@@ -119,10 +119,19 @@ def auth_google_login():
         -url to login again, in case of an error
     """
     user: user_model.User = user_model.User(session["email"])
-    if user.login_google(session["name"]):
+    data: dict = {
+        "username": session["name"],
+        "email": session["email"],
+    }
+    if user.login_google(data):
         session.pop('_flashes', None)
         session["user"] = user.to_json()
         return redirect("/dashboard")
+    
+    if user.signup_google(data):
+        session.pop('_flashes', None)
+        session["user"] = user.to_json()
+        return redirect("/signup/set-token")
     
     flash("Invalid username. Please try again!")
     return redirect(url_for("main.login"))
@@ -178,18 +187,43 @@ def auth_signup():
         "password": request.args.get("password"),
     }
     user = user_model.User(user_auth["email"])
-    resp = api_crud.create_customer(data=user_auth)
-    if resp.is_error():
-        print(resp.errors)
-        flash("Internal error. Please try again!")
-        return redirect("/login")
     if user.signup(user_auth):
         session.pop('_flashes', None)
         session["user"] = user.to_json()
-        return redirect(url_for("main.dashboard"))
+        return redirect(url_for("main.set_token_page"))
     
-    flash("Invalid username. Please try again!")
+    flash("Invalid username or email. Please try again!")
     return redirect(url_for("main.signup"))
+
+#________________________ Set Token ________________________#
+@main.route("/set-token", methods=["POST"])
+def set_token():
+    """
+    A function to handle the "/set-token" route with the "POST" method.
+    It requires the user to be logged in.
+    ---
+    Returns:
+        - If the user is not logged in, it redirects to the "/login" page.
+        - If the request method is not "POST", it flashes an error message and redirects to the "set_token" page.
+        - If the token is successfully set, it updates the session, flashes a success message, and redirects to the "dashboard" page.
+        - If the token update fails, it flashes an error message and redirects to the "set_token" page.
+    """
+    if "user" not in session:
+        return redirect("/login")
+    if request.method != "POST":
+        flash("Internal problem. Please try again!")
+        return redirect(url_for("main.set_token_page"))
+    session["user"]["token"] = request.form["token"]
+    user = user_model.from_json(session["user"])
+    print(user.token)
+    if user.token:
+        session.pop('_flashes', None)
+        session["user"] = user.to_json()
+        return redirect("/dashboard")
+    
+    
+    flash("Invalid token. Please try again!")
+    return redirect(url_for("main.set_token_page"))
 
 #________________________ User's Profile Page ________________________#
 #Change user data
@@ -285,6 +319,7 @@ def new_assistant_auth():
     files: list
     if "user" not in session:
         return redirect("/login")
+    print(session["user"])
     user = user_model.from_json(session["user"])
     if request.method != "POST":
         flash("Internal problem. Please try again!")
@@ -303,6 +338,7 @@ def new_assistant_auth():
         file.save(os.path.join(UPLOAD_FOLDER, filename))
         files = [filename]
     data = {
+        "token" : user.token,
         "user_id" : str(user.id),
         "name" : request.form["name"],
         "gpt-model" : request.form["gpt-model"],
@@ -314,6 +350,7 @@ def new_assistant_auth():
         flash("Invalid data. Please try again!")
         return redirect(url_for("main.new_assistant"))
 
+    session["token"] = user.token
     return redirect(url_for("main.new_assistant_create", data = data))
 
 @main.route("/assistants/new/create")

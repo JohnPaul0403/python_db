@@ -1,7 +1,9 @@
 import os
 from .environments import UPLOAD_FOLDER, get_keys
+from dotenv import load_dotenv
 
 get_keys()
+load_dotenv()
 
 class Config(object):
     os.environ["OAUTHLIB_INSECURE_TRANSPORT"] = "1" # to allow Http traffic for local dev

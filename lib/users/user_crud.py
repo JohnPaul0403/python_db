@@ -24,6 +24,20 @@ def create_user(cursor, data: dict) -> bool:
     except:
         return False
     
+def set_token(cursor, data: dict) -> bool:
+    """
+    Set the token for a user in the database.
+    Args:
+        cursor: The database cursor object.
+        data: A tuple containing the user ID and token.
+    Returns:
+        bool: True if the token was successfully set, False otherwise.
+    """
+    try:
+        cursor.execute("""UPDATE users SET token = ? WHERE id = ?""", (data["token"], data["user_id"]))
+        return True
+    except:
+        return False
     
 def read_user(cursor, email: str) -> any:
     """
